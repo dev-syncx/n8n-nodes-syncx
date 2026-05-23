@@ -14,7 +14,7 @@ export class SyncX implements INodeType {
 		icon: 'file:syncx.svg',
 		group: ['transform'],
 		version: 1,
-		subtitle: '={{$parameter["operation"]}}',
+		subtitle: '={{{"createUpdateLead":"Create or Update Lead"}[$parameter["operation"]]}}',
 		description: 'Create and update leads in SyncX',
 		defaults: {
 			name: 'SyncX',
