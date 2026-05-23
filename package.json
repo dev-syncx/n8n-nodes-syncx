@@ -1,0 +1,59 @@
+{
+  "name": "n8n-nodes-syncx",
+  "version": "1.0.0",
+  "description": "SyncX is a no-code AI platform for sales and support that connects AI agents with business tools and workflows.",
+  "keywords": [
+    "n8n-community-node-package"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "SyncX",
+    "email": "support@syncx.dev",
+    "url": "https://syncx.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-syncx/n8n-nodes-syncx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dev-syncx/n8n-nodes-syncx/issues"
+  },
+  "homepage": "https://github.com/dev-syncx/n8n-nodes-syncx#readme",
+  "engines": {
+    "node": ">=18.10"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "node node_modules/typescript/bin/tsc && node node_modules/copyfiles/copyfiles -u 0 \"nodes/**/*.svg\" dist/",
+    "dev": "node node_modules/typescript/bin/tsc --watch",
+    "lint": "node node_modules/eslint/bin/eslint.js nodes credentials",
+    "lintfix": "node node_modules/eslint/bin/eslint.js nodes credentials --fix",
+    "prepublishOnly": "npm run build && npm run lint"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/SyncXApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/SyncX/SyncX.node.js",
+      "dist/nodes/SyncX/SyncXTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.16",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "copyfiles": "^2.4.1",
+    "eslint": "^9.39.4",
+    "n8n-workflow": "*",
+    "typescript": "^5.1.6",
+    "typescript-eslint": "^8.59.4"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
