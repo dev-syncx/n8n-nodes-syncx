@@ -10,6 +10,25 @@ import {
 	NodeOperationError,
 } from 'n8n-workflow';
 
+// ── SyncX API response shapes ─────────────────────────────────────────────────
+
+interface SyncXSheet {
+	id: string | number;
+	sheetName: string;
+}
+
+interface SyncXPipeline {
+	id: string | number;
+	title: string;
+}
+
+interface SyncXStage {
+	id: string | number;
+	stageTitle: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export class SyncXTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'SyncX Trigger',
@@ -37,7 +56,6 @@ export class SyncXTrigger implements INodeType {
 				path: 'webhook',
 			},
 		],
-		// Shows the webhook URL and test button in the n8n UI
 		triggerPanel: {
 			header: '',
 			executionsHelp: {
@@ -106,7 +124,7 @@ export class SyncXTrigger implements INodeType {
 					url: `${credentials.domain}/api/leads/getSheets`,
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
-				return (response.data as any[]).map((sheet: any) => ({
+				return (response.data as SyncXSheet[]).map((sheet) => ({
 					name: sheet.sheetName,
 					value: sheet.id,
 				}));
@@ -119,7 +137,7 @@ export class SyncXTrigger implements INodeType {
 					url: `${credentials.domain}/api/pipeline/getPipelines`,
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
-				return (response.data as any[]).map((pipeline: any) => ({
+				return (response.data as SyncXPipeline[]).map((pipeline) => ({
 					name: pipeline.title,
 					value: pipeline.id,
 				}));
@@ -135,7 +153,7 @@ export class SyncXTrigger implements INodeType {
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 					qs: { pipelineId },
 				});
-				return (response.data.stages as any[]).map((stage: any) => ({
+				return (response.data.stages as SyncXStage[]).map((stage) => ({
 					name: stage.stageTitle,
 					value: stage.id,
 				}));
@@ -147,7 +165,6 @@ export class SyncXTrigger implements INodeType {
 		default: {
 			async checkExists(this: IHookFunctions): Promise<boolean> {
 				const webhookData = this.getWorkflowStaticData('node');
-				// Only consider it existing if we have a real saved ID
 				return typeof webhookData.webhookId === 'number' || typeof webhookData.webhookId === 'string';
 			},
 
@@ -168,14 +185,13 @@ export class SyncXTrigger implements INodeType {
 					body: {
 						url: webhookUrl,
 						action: 'StageChange',
-						stageIds: stages.toString(), // comma-separated string matching Zapier's format
+						stageIds: stages.toString(),
 						sheetId,
 					},
 					json: true,
 				});
 
-				// Handle both { data: { id } } and { id } response shapes
-				const webhookId = response?.data?.id ?? response?.id;
+				const webhookId = (response?.data as IDataObject)?.id ?? (response as IDataObject)?.id;
 
 				if (webhookId === undefined || webhookId === null) {
 					throw new NodeOperationError(
@@ -206,7 +222,7 @@ export class SyncXTrigger implements INodeType {
 							json: true,
 						});
 					} catch {
-						// Webhook may have already been removed on the SyncX side — safe to continue
+						// Webhook may have already been removed on the SyncX side
 					}
 					delete webhookData.webhookId;
 				}
@@ -216,12 +232,8 @@ export class SyncXTrigger implements INodeType {
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-		// getBodyData() is typed as IDataObject but SyncX may send an array,
-		// so cast broadly and normalise to an array either way.
 		const body = this.getBodyData() as IDataObject | IDataObject[];
-
 		const items: IDataObject[] = Array.isArray(body) ? body : [body];
-
 		return {
 			workflowData: [items.map((item) => ({ json: item }))],
 		};
