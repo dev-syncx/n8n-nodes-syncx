@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-syncx",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "SyncX is a no-code AI platform for sales and support that connects AI agents with business tools and workflows.",
   "keywords": [
     "n8n-community-node-package"
