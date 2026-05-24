@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-syncx",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "SyncX is a no-code AI platform for sales and support that connects AI agents with business tools and workflows.",
   "keywords": [
     "n8n-community-node-package"
@@ -49,6 +49,7 @@
     "@typescript-eslint/parser": "^8.59.4",
     "copyfiles": "^2.4.1",
     "eslint": "^9.39.4",
+    "eslint-plugin-n8n-nodes-base": "^1.16.6",
     "n8n-workflow": "*",
     "typescript": "^5.1.6",
     "typescript-eslint": "^8.59.4"
