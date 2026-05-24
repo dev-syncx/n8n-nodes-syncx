@@ -1,12 +1,25 @@
 import {
 	IDataObject,
 	IExecuteFunctions,
+	IHttpRequestOptions,
 	ILoadOptionsFunctions,
 	INodeExecutionData,
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
+
+// n8n's type for httpRequestWithAuthentication uses `this: IAllExecuteFunctions`,
+// but the method is available at runtime in all helper contexts.
+// This augmentation removes the constraint so it compiles in loadOptions/execute.
+declare module 'n8n-workflow' {
+	interface RequestHelperFunctions {
+		httpRequestWithAuthentication(
+			credentialsType: string,
+			requestOptions: IHttpRequestOptions,
+		): Promise<IDataObject>;
+	}
+}
 
 // ── SyncX API response shapes ─────────────────────────────────────────────────
 
@@ -267,10 +280,9 @@ export class SyncX implements INodeType {
 		loadOptions: {
 			async getSmartsheets(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/leads/getSheets`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
 				return (response.data as SyncXSheet[]).map((sheet) => ({
 					name: sheet.sheetName,
@@ -280,10 +292,9 @@ export class SyncX implements INodeType {
 
 			async getPipelines(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipelines`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
 				return (response.data as SyncXPipeline[]).map((pipeline) => ({
 					name: pipeline.title,
@@ -295,13 +306,12 @@ export class SyncX implements INodeType {
 				const credentials = await this.getCredentials('syncXApi');
 				const pipelineId = this.getCurrentNodeParameter('pipelineId') as string;
 				if (!pipelineId) return [];
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipeline`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 					qs: { pipelineId },
 				});
-				return (response.data.stages as SyncXStage[]).map((stage) => ({
+				return ((response.data as { stages: SyncXStage[] }).stages).map((stage) => ({
 					name: stage.stageTitle,
 					value: stage.id,
 				}));
@@ -309,10 +319,9 @@ export class SyncX implements INodeType {
 
 			async getTeams(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/team/getTeamMembers`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
 				return (response.data as SyncXTeamMember[]).map((member) => ({
 					name: member.invitedUser?.name ?? member.name ?? String(member.invitedUserId),
@@ -323,10 +332,9 @@ export class SyncX implements INodeType {
 			async getAgents(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
 				const pipelineId = this.getCurrentNodeParameter('pipelineId') as string;
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/agent/getAgents`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 					qs: { agentType: 'outbound', pipelineId, pipeline: true },
 				});
 				return (response.data as SyncXAgent[]).map((agent) => {
@@ -338,15 +346,13 @@ export class SyncX implements INodeType {
 				});
 			},
 
-			// Loads column names from the selected smartsheet (skips standard fields)
 			async getSmartsheetColumns(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
 				const smartListId = this.getCurrentNodeParameter('smartListId') as string;
 				if (!smartListId) return [];
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/leads/getSheets`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
 				const sheet = (response.data as SyncXSheet[]).find(
 					(s) => String(s.id) === String(smartListId),
@@ -375,7 +381,6 @@ export class SyncX implements INodeType {
 					phoneNumber: this.getNodeParameter('phoneNumber', i),
 				};
 
-				// Standard optional fields — only add if non-empty
 				const optionalScalars = [
 					'firstName', 'lastName', 'email', 'address', 'notes', 'tag',
 					'stage', 'appointmentDateAndTime', 'appointment_duration',
@@ -386,14 +391,12 @@ export class SyncX implements INodeType {
 					if (val) body[key] = val;
 				}
 
-				// Multi-select arrays
 				const teamsAssigned = this.getNodeParameter('teamsAssigned', i) as string[];
 				if (teamsAssigned?.length) body.teamsAssigned = teamsAssigned;
 
 				const mainAgentIds = this.getNodeParameter('mainAgentIds', i) as number[];
 				if (mainAgentIds?.length) body.mainAgentIds = mainAgentIds;
 
-				// Dynamic smartsheet columns
 				const extraColumns = this.getNodeParameter('extraColumns', i) as {
 					values?: Array<{ columnName: string; value: string }>;
 				};
@@ -403,13 +406,10 @@ export class SyncX implements INodeType {
 					}
 				}
 
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'PUT',
 					url: `${credentials.domain}/api/leads/updateLead`,
-					headers: {
-						'X-API-KEY': credentials.apiKey as string,
-						'Content-Type': 'application/json',
-					},
+					headers: { 'Content-Type': 'application/json' },
 					body,
 					json: true,
 				});

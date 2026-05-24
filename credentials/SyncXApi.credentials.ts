@@ -1,4 +1,5 @@
 import {
+	IAuthenticateGeneric,
 	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
@@ -27,6 +28,15 @@ export class SyncXApi implements ICredentialType {
 			required: true,
 		},
 	];
+
+	authenticate: IAuthenticateGeneric = {
+		type: 'generic',
+		properties: {
+			headers: {
+				'X-API-KEY': '={{$credentials.apiKey}}',
+			},
+		},
+	};
 
 	test: ICredentialTestRequest = {
 		request: {
