@@ -129,7 +129,7 @@ export class SyncXTrigger implements INodeType {
 		loadOptions: {
 			async getSmartsheets(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/leads/getSheets`,
 				});
@@ -141,7 +141,7 @@ export class SyncXTrigger implements INodeType {
 
 			async getPipelines(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipelines`,
 				});
@@ -155,7 +155,7 @@ export class SyncXTrigger implements INodeType {
 				const credentials = await this.getCredentials('syncXApi');
 				const pipelineId = this.getCurrentNodeParameter('pipelineId') as string;
 				if (!pipelineId) return [];
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipeline`,
 					qs: { pipelineId },
@@ -181,7 +181,7 @@ export class SyncXTrigger implements INodeType {
 				const sheetId = this.getNodeParameter('sheetId') as string;
 				const stages = this.getNodeParameter('stages') as string[];
 
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'POST',
 					url: `${credentials.domain}/api/user/createWebhook`,
 					headers: {
@@ -217,7 +217,7 @@ export class SyncXTrigger implements INodeType {
 
 				if (webhookData.webhookId !== undefined) {
 					try {
-						await this.helpers.httpRequestWithAuthentication('syncXApi', {
+						await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 							method: 'POST',
 							url: `${credentials.domain}/api/user/deleteWebhook`,
 							headers: { 'Content-Type': 'application/json' },

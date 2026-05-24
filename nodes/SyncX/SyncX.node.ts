@@ -280,7 +280,7 @@ export class SyncX implements INodeType {
 		loadOptions: {
 			async getSmartsheets(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/leads/getSheets`,
 				});
@@ -292,7 +292,7 @@ export class SyncX implements INodeType {
 
 			async getPipelines(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipelines`,
 				});
@@ -306,7 +306,7 @@ export class SyncX implements INodeType {
 				const credentials = await this.getCredentials('syncXApi');
 				const pipelineId = this.getCurrentNodeParameter('pipelineId') as string;
 				if (!pipelineId) return [];
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipeline`,
 					qs: { pipelineId },
@@ -319,7 +319,7 @@ export class SyncX implements INodeType {
 
 			async getTeams(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/team/getTeamMembers`,
 				});
@@ -332,7 +332,7 @@ export class SyncX implements INodeType {
 			async getAgents(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
 				const pipelineId = this.getCurrentNodeParameter('pipelineId') as string;
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/agent/getAgents`,
 					qs: { agentType: 'outbound', pipelineId, pipeline: true },
@@ -350,7 +350,7 @@ export class SyncX implements INodeType {
 				const credentials = await this.getCredentials('syncXApi');
 				const smartListId = this.getCurrentNodeParameter('smartListId') as string;
 				if (!smartListId) return [];
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/leads/getSheets`,
 				});
