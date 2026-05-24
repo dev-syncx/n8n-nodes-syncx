@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-syncx",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "SyncX is a no-code AI platform for sales and support that connects AI agents with business tools and workflows.",
   "keywords": [
     "n8n-community-node-package"
@@ -8,7 +8,7 @@
   "license": "MIT",
   "author": {
     "name": "SyncX",
-    "email": "support@syncx.dev",
+    "email": "hello@syncx.dev",
     "url": "https://syncx.dev"
   },
   "repository": {
