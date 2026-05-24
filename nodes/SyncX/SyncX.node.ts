@@ -1,4 +1,5 @@
 import {
+	IDataObject,
 	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	INodeExecutionData,
@@ -6,6 +7,39 @@ import {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
+
+// ── SyncX API response shapes ─────────────────────────────────────────────────
+
+interface SyncXSheet {
+	id: string | number;
+	sheetName: string;
+	columns?: Array<{ columnName: string }>;
+}
+
+interface SyncXPipeline {
+	id: string | number;
+	title: string;
+}
+
+interface SyncXStage {
+	id: string | number;
+	stageTitle: string;
+}
+
+interface SyncXTeamMember {
+	invitedUserId: string | number;
+	invitingUserId: string | number;
+	name?: string;
+	invitedUser?: { name: string };
+}
+
+interface SyncXAgent {
+	id: string | number;
+	name: string;
+	stages?: Array<{ stageTitle: string }>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export class SyncX implements INodeType {
 	description: INodeTypeDescription = {
@@ -238,7 +272,7 @@ export class SyncX implements INodeType {
 					url: `${credentials.domain}/api/leads/getSheets`,
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
-				return (response.data as any[]).map((sheet: any) => ({
+				return (response.data as SyncXSheet[]).map((sheet) => ({
 					name: sheet.sheetName,
 					value: sheet.id,
 				}));
@@ -251,7 +285,7 @@ export class SyncX implements INodeType {
 					url: `${credentials.domain}/api/pipeline/getPipelines`,
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
-				return (response.data as any[]).map((pipeline: any) => ({
+				return (response.data as SyncXPipeline[]).map((pipeline) => ({
 					name: pipeline.title,
 					value: pipeline.id,
 				}));
@@ -267,7 +301,7 @@ export class SyncX implements INodeType {
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 					qs: { pipelineId },
 				});
-				return (response.data.stages as any[]).map((stage: any) => ({
+				return (response.data.stages as SyncXStage[]).map((stage) => ({
 					name: stage.stageTitle,
 					value: stage.id,
 				}));
@@ -280,8 +314,8 @@ export class SyncX implements INodeType {
 					url: `${credentials.domain}/api/team/getTeamMembers`,
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
-				return (response.data as any[]).map((member: any) => ({
-					name: member.invitedUser?.name || member.name || String(member.invitedUserId),
+				return (response.data as SyncXTeamMember[]).map((member) => ({
+					name: member.invitedUser?.name ?? member.name ?? String(member.invitedUserId),
 					value: member.invitingUserId,
 				}));
 			},
@@ -295,8 +329,8 @@ export class SyncX implements INodeType {
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 					qs: { agentType: 'outbound', pipelineId, pipeline: true },
 				});
-				return (response.data as any[]).map((agent: any) => {
-					const stages = (agent.stages || []).map((s: any) => s.stageTitle).join(', ');
+				return (response.data as SyncXAgent[]).map((agent) => {
+					const stages = (agent.stages ?? []).map((s) => s.stageTitle).join(', ');
 					return {
 						name: stages ? `${agent.name} (${stages})` : agent.name,
 						value: agent.id,
@@ -314,12 +348,14 @@ export class SyncX implements INodeType {
 					url: `${credentials.domain}/api/leads/getSheets`,
 					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
-				const sheet = (response.data as any[]).find((s: any) => String(s.id) === String(smartListId));
+				const sheet = (response.data as SyncXSheet[]).find(
+					(s) => String(s.id) === String(smartListId),
+				);
 				if (!sheet?.columns?.length) return [];
 				const builtIn = new Set(['First Name', 'Last Name', 'Phone Number', 'Email']);
-				return (sheet.columns as any[])
-					.filter((col: any) => !builtIn.has(col.columnName))
-					.map((col: any) => ({ name: col.columnName, value: col.columnName }));
+				return sheet.columns
+					.filter((col) => !builtIn.has(col.columnName))
+					.map((col) => ({ name: col.columnName, value: col.columnName }));
 			},
 		},
 	};
@@ -333,7 +369,7 @@ export class SyncX implements INodeType {
 			const operation = this.getNodeParameter('operation', i) as string;
 
 			if (operation === 'createUpdateLead') {
-				const body: Record<string, any> = {
+				const body: Record<string, unknown> = {
 					smartListId: this.getNodeParameter('smartListId', i),
 					pipelineId: this.getNodeParameter('pipelineId', i),
 					phoneNumber: this.getNodeParameter('phoneNumber', i),
@@ -378,7 +414,7 @@ export class SyncX implements INodeType {
 					json: true,
 				});
 
-				returnData.push({ json: response as any, pairedItem: { item: i } });
+				returnData.push({ json: response as IDataObject, pairedItem: { item: i } });
 			}
 		}
 
