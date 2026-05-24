@@ -9,6 +9,12 @@ export class SyncXApi implements ICredentialType {
 	name = 'syncXApi';
 	displayName = 'SyncX API';
 	documentationUrl = 'https://syncx.dev';
+	httpRequestNode = {
+		name: 'SyncX',
+		docsUrl: 'https://syncx.dev',
+		apiBaseUrlPlaceholder: 'https://app.syncx.dev',
+		hidden: true,
+	};
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Domain',
