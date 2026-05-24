@@ -406,7 +406,7 @@ export class SyncX implements INodeType {
 					}
 				}
 
-				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
+				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'syncXApi', {
 					method: 'PUT',
 					url: `${credentials.domain}/api/leads/updateLead`,
 					headers: { 'Content-Type': 'application/json' },
