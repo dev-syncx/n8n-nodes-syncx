@@ -46,23 +46,23 @@ export class SyncX implements INodeType {
 
 			// ── Required fields ───────────────────────────────────────────
 			{
-				displayName: 'Smartsheet',
+				displayName: 'Smartsheet Name or ID',
 				name: 'smartListId',
 				type: 'options',
 				typeOptions: { loadOptionsMethod: 'getSmartsheets' },
 				required: true,
 				default: '',
-				description: 'The smartsheet list the lead belongs to',
+				description: 'The smartsheet list the lead belongs to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 				displayOptions: { show: { operation: ['createUpdateLead'] } },
 			},
 			{
-				displayName: 'Pipeline',
+				displayName: 'Pipeline Name or ID',
 				name: 'pipelineId',
 				type: 'options',
 				typeOptions: { loadOptionsMethod: 'getPipelines' },
 				required: true,
 				default: '',
-				description: 'The pipeline for the lead',
+				description: 'The pipeline for the lead. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 				displayOptions: { show: { operation: ['createUpdateLead'] } },
 			},
 			{
@@ -122,7 +122,7 @@ export class SyncX implements INodeType {
 
 			// ── Pipeline / stage ─────────────────────────────────────────
 			{
-				displayName: 'Stage',
+				displayName: 'Stage Name or ID',
 				name: 'stage',
 				type: 'options',
 				typeOptions: {
@@ -130,7 +130,7 @@ export class SyncX implements INodeType {
 					loadOptionsDependsOn: ['pipelineId'],
 				},
 				default: '',
-				description: 'Pipeline stage for the lead — reloads when Pipeline changes',
+				description: 'Pipeline stage for the lead — reloads when Pipeline changes. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 				displayOptions: { show: { operation: ['createUpdateLead'] } },
 			},
 
@@ -169,16 +169,16 @@ export class SyncX implements INodeType {
 
 			// ── Assignment ────────────────────────────────────────────────
 			{
-				displayName: 'Teams',
+				displayName: 'Team Names or IDs',
 				name: 'teamsAssigned',
 				type: 'multiOptions',
 				typeOptions: { loadOptionsMethod: 'getTeams' },
 				default: [],
-				description: 'Team members to assign to this lead',
+				description: 'Team members to assign to this lead. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 				displayOptions: { show: { operation: ['createUpdateLead'] } },
 			},
 			{
-				displayName: 'Agents',
+				displayName: 'Agent Names or IDs',
 				name: 'mainAgentIds',
 				type: 'multiOptions',
 				typeOptions: {
@@ -186,7 +186,7 @@ export class SyncX implements INodeType {
 					loadOptionsDependsOn: ['pipelineId'],
 				},
 				default: [],
-				description: 'Outbound agents to assign — reloads when Pipeline changes',
+				description: 'Outbound agents to assign — reloads when Pipeline changes. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 				displayOptions: { show: { operation: ['createUpdateLead'] } },
 			},
 
@@ -206,7 +206,7 @@ export class SyncX implements INodeType {
 						displayName: 'Column',
 						values: [
 							{
-								displayName: 'Column Name',
+								displayName: 'Column Name or ID',
 								name: 'columnName',
 								type: 'options',
 								typeOptions: {
@@ -214,7 +214,7 @@ export class SyncX implements INodeType {
 									loadOptionsDependsOn: ['smartListId'],
 								},
 								default: '',
-								description: 'Pick a column — reloads when Smartsheet changes',
+								description: 'Pick a column — reloads when Smartsheet changes. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 							},
 							{
 								displayName: 'Value',
