@@ -1,6 +1,7 @@
 import {
 	IDataObject,
 	IHookFunctions,
+	IHttpRequestOptions,
 	ILoadOptionsFunctions,
 	INodePropertyOptions,
 	INodeType,
@@ -9,6 +10,15 @@ import {
 	IWebhookResponseData,
 	NodeOperationError,
 } from 'n8n-workflow';
+declare module 'n8n-workflow' {
+	interface RequestHelperFunctions {
+		httpRequestWithAuthentication(
+			credentialsType: string,
+			requestOptions: IHttpRequestOptions,
+		): Promise<IDataObject>;
+	}
+}
+
 
 // ── SyncX API response shapes ─────────────────────────────────────────────────
 
@@ -119,10 +129,9 @@ export class SyncXTrigger implements INodeType {
 		loadOptions: {
 			async getSmartsheets(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/leads/getSheets`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
 				return (response.data as SyncXSheet[]).map((sheet) => ({
 					name: sheet.sheetName,
@@ -132,10 +141,9 @@ export class SyncXTrigger implements INodeType {
 
 			async getPipelines(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const credentials = await this.getCredentials('syncXApi');
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipelines`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 				});
 				return (response.data as SyncXPipeline[]).map((pipeline) => ({
 					name: pipeline.title,
@@ -147,13 +155,12 @@ export class SyncXTrigger implements INodeType {
 				const credentials = await this.getCredentials('syncXApi');
 				const pipelineId = this.getCurrentNodeParameter('pipelineId') as string;
 				if (!pipelineId) return [];
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'GET',
 					url: `${credentials.domain}/api/pipeline/getPipeline`,
-					headers: { 'X-API-KEY': credentials.apiKey as string },
 					qs: { pipelineId },
 				});
-				return (response.data.stages as SyncXStage[]).map((stage) => ({
+				return ((response.data as { stages: SyncXStage[] }).stages).map((stage) => ({
 					name: stage.stageTitle,
 					value: stage.id,
 				}));
@@ -174,11 +181,10 @@ export class SyncXTrigger implements INodeType {
 				const sheetId = this.getNodeParameter('sheetId') as string;
 				const stages = this.getNodeParameter('stages') as string[];
 
-				const response = await this.helpers.httpRequest({
+				const response = await this.helpers.httpRequestWithAuthentication('syncXApi', {
 					method: 'POST',
 					url: `${credentials.domain}/api/user/createWebhook`,
 					headers: {
-						'X-API-KEY': credentials.apiKey as string,
 						'Content-Type': 'application/json',
 						Accept: 'application/json',
 					},
@@ -211,13 +217,10 @@ export class SyncXTrigger implements INodeType {
 
 				if (webhookData.webhookId !== undefined) {
 					try {
-						await this.helpers.httpRequest({
+						await this.helpers.httpRequestWithAuthentication('syncXApi', {
 							method: 'POST',
 							url: `${credentials.domain}/api/user/deleteWebhook`,
-							headers: {
-								'X-API-KEY': credentials.apiKey as string,
-								'Content-Type': 'application/json',
-							},
+							headers: { 'Content-Type': 'application/json' },
 							body: { id: webhookData.webhookId },
 							json: true,
 						});
