@@ -27,7 +27,7 @@ Start a workflow when something happens in SyncX.
 You need a **Domain** and an **API Key** from your SyncX account:
 
 1. Log in to your SyncX instance (e.g. `https://app.syncx.dev`)
-2. Go to **Settings → API Keys**
+2. Go to **Integrations → API Keys**
 3. Copy your API key
 
 In n8n, create a new **SyncX API** credential and fill in:
